@@ -529,3 +529,235 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
 //        }
 //    }
 //}
+
+
+//import UIKit
+//
+//enum GameMode {
+//    case task1
+//    case task2
+//}
+//
+//class ViewController: UIViewController {
+//    // MARK: - IBOutlets
+//    //UILabel
+//    @IBOutlet weak var selectedGridLabel: UILabel!
+//    
+//    //UIStepper
+//    @IBOutlet weak var stepper: UIStepper!
+//    
+//    //UICollectionView
+//    @IBOutlet weak var gridCollectionView: UICollectionView!
+//    
+//    //UIButton
+//    @IBOutlet weak var newGameButton: UIButton!
+//    @IBOutlet weak var switchToAnotherTaskButton: UIButton!
+//    @IBOutlet weak var resetGridButton: UIButton!
+//    
+//    // MARK: - Variables
+//    var gridSize: Int = 5 {
+//        didSet {
+//            selectedGridLabel.text = "\(gridSize)x\(gridSize)"
+//            gridCollectionView.reloadData()
+//        }
+//    }
+//    
+//    let minGridSize = 3
+//    let maxGridSize = 10
+//    var gridColors: [[UIColor]] = []
+//    let colorOptions: [UIColor] = [.red, .blue, .green, .yellow, .orange, .purple]
+//    var currentGameMode: GameMode = .task1
+//    
+//    // MARK: - Methods
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//        self.setUpInitialDetails()
+//        self.startNewGame()
+//    }
+//    
+//    // MARK: - Functions
+//    func setUpInitialDetails() {
+//        self.gridCollectionView.delegate = self
+//        self.gridCollectionView.dataSource = self
+//        self.gridCollectionView.register(ColorGridCollectionViewCell.self, forCellWithReuseIdentifier: "ColorGridCollectionViewCell")
+//        
+//        self.stepper.minimumValue = Double(self.minGridSize)
+//        self.stepper.maximumValue = Double(self.maxGridSize)
+//        self.stepper.value = Double(self.gridSize)
+//    }
+//    
+//    func startNewGame() {
+//        self.gridColors = (0..<self.gridSize).map { _ in
+//            (0..<self.gridSize).map { _ in self.colorOptions.randomElement()! }
+//        }
+//        self.gridCollectionView.reloadData()
+//    }
+//    
+//    func isGameOver() -> Bool {
+//        let firstColor = gridColors.first?.first
+//        for row in gridColors {
+//            for color in row {
+//                if color != firstColor {
+//                    return false
+//                }
+//            }
+//        }
+//        return true
+//    }
+//    
+//    func showGameOverAlert() {
+//        let alert = UIAlertController(title: "Game Over!", message: "All cells are filled with the same color.", preferredStyle: .alert)
+//        alert.addAction(UIAlertAction(title: "New Game", style: .default, handler: { _ in
+//            self.startNewGame()
+//        }))
+//        present(alert, animated: true)
+//    }
+//    
+//    
+//    // MARK: - IBActions
+//    @IBAction func onStepper(_ sender: UIStepper) {
+//        self.gridSize = Int(sender.value)
+//        self.startNewGame()
+//    }
+//    @IBAction func onNewGame(_ sender: UIButton) {
+//        self.startNewGame()
+//    }
+//    
+//    @IBAction func onSwitchToTaskTwo(_ sender: UIButton) {
+//        currentGameMode = .task2
+//        resetGridForTask2()
+//        
+//        // UI updates
+//        sender.isHidden = true
+//        resetGridButton.isHidden = false
+//        newGameButton.isHidden = true
+//    }
+//    
+//    @IBAction func onResetGrid(_ sender: UIButton) {
+//        resetGridForTask2()
+//    }
+//    
+//    func resetGridForTask2() {
+//        gridColors = Array(repeating: Array(repeating: .lightGray, count: gridSize), count: gridSize)
+//        gridCollectionView.reloadData()
+//        selectedGridLabel.text = "\(gridSize)x\(gridSize)"
+//    }
+//    
+//}
+//
+//extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+//    func numberOfSections(in collectionView: UICollectionView) -> Int {
+//        return gridSize
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        return gridSize
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ColorGridCollectionViewCell", for: indexPath)
+//        cell.backgroundColor = gridColors[indexPath.section][indexPath.item]
+//        cell.layer.cornerRadius = 4
+//        cell.layer.borderColor = UIColor.systemGray4.cgColor
+//        cell.layer.borderWidth = 1
+//        return cell
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+//        switch currentGameMode {
+//        case .task1:
+//            // Use the original flood fill logic
+//            let targetColor = gridColors[indexPath.section][indexPath.item]
+//            var newColor = colorOptions.randomElement()!
+//            while newColor == targetColor {
+//                newColor = colorOptions.randomElement()!
+//            }
+//            floodFill(from: indexPath.section, column: indexPath.item, targetColor: targetColor, replacementColor: newColor)
+//            collectionView.reloadData()
+//            if isGameOver() {
+//                showGameOverAlert()
+//            }
+//            
+//        case .task2:
+//            highlightCrossGrid(at: indexPath)
+//        }
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+//        let spacing: CGFloat = 2
+//        let totalSpacing = spacing * CGFloat(gridSize - 1)
+//        let width = (collectionView.frame.width - totalSpacing) / CGFloat(gridSize)
+//        return CGSize(width: width, height: width)
+//    }
+//    
+//    func floodFill(from row: Int, column: Int, targetColor: UIColor, replacementColor: UIColor) {
+//        guard targetColor != replacementColor else { return }
+//        
+//        var visited = Array(repeating: Array(repeating: false, count: gridSize), count: gridSize)
+//        
+//        func dfs(r: Int, c: Int) {
+//            guard r >= 0, r < gridSize, c >= 0, c < gridSize else { return }
+//            guard !visited[r][c], gridColors[r][c] == targetColor else { return }
+//            
+//            visited[r][c] = true
+//            gridColors[r][c] = replacementColor
+//            
+//            dfs(r: r + 1, c: c)
+//            dfs(r: r - 1, c: c)
+//            dfs(r: r, c: c + 1)
+//            dfs(r: r, c: c - 1)
+//        }
+//        
+//        dfs(r: row, c: column)
+//    }
+//    
+//    func highlightCrossGrid(at indexPath: IndexPath) {
+//        let row = indexPath.section
+//        let col = indexPath.item
+//        resetGridForTask2()
+//        
+//        gridColors[row][col] = .red
+//        
+//        for i in 0..<gridSize {
+//            if i != col { gridColors[row][i] = .yellow }      // horizontal
+//            if i != row { gridColors[i][col] = .yellow }      // vertical
+//            if row - i >= 0, col - i >= 0, row - i != row { gridColors[row - i][col - i] = .yellow }   // ↖
+//            if row + i < gridSize, col + i < gridSize, row + i != row { gridColors[row + i][col + i] = .yellow } // ↘
+//            if row - i >= 0, col + i < gridSize, row - i != row { gridColors[row - i][col + i] = .yellow } // ↗
+//            if row + i < gridSize, col - i >= 0, row + i != row { gridColors[row + i][col - i] = .yellow } // ↙
+//        }
+//        
+//        gridCollectionView.reloadData()
+//    }
+//    
+//    
+//}
+//
+//
+//// MARK: - Color Grid CollectionView Cell
+//class ColorGridCollectionViewCell: UICollectionViewCell {
+//    
+//    override init(frame: CGRect) {
+//        super.init(frame: frame)
+//        self.setUpCell()
+//    }
+//    
+//    required init?(coder: NSCoder) {
+//        super.init(coder: coder)
+//        self.setUpCell()
+//    }
+//    
+//    func setUpCell() {
+//        layer.cornerRadius = 4.0
+//        layer.borderWidth = 1.0
+//        layer.borderColor = UIColor.systemGray4.cgColor
+//    }
+//    
+//    override var isHighlighted: Bool {
+//        didSet {
+//            UIView.animate(withDuration: 0.1) {
+//                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.95, y: 0.95) : .identity
+//            }
+//        }
+//    }
+//}
